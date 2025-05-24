@@ -1,9 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium_stealth import stealth
 import time
+import os
 
 def setup_driver():
     chrome_options = Options()
@@ -17,12 +17,13 @@ def setup_driver():
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option("useAutomationExtension", False)
     
+    # Use system ChromeDriver that comes with GitHub Actions
     driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service(executable_path='/usr/bin/chromedriver'),
         options=chrome_options
     )
     
-    # Apply stealth configuration
+    # Stealth configuration
     stealth(driver,
         languages=["en-US", "en"],
         vendor="Google Inc.",
@@ -49,8 +50,11 @@ def main():
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
+        if 'driver' in locals():
+            driver.save_screenshot("error.png")
     finally:
-        driver.quit()
+        if 'driver' in locals():
+            driver.quit()
         print("🛑 Browser closed")
 
 if __name__ == "__main__":
