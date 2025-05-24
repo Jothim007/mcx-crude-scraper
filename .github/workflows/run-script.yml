@@ -16,15 +16,26 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Google Chrome
+      - name: Install Google Chrome & Chromedriver
         run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          sudo apt-get install -y google-chrome-stable
 
-      - name: Install dependencies
-        run: |
-          pip install selenium
-          sudo apt-get install -y chromium-driver
+          # Set up ChromeDriver to match the Chrome version
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json" | jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version | startswith($ver)) | .version' | head -n 1)
+          DRIVER_URL="https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
+
+          wget "$DRIVER_URL" -O chromedriver.zip
+          unzip chromedriver.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+
+      - name: Install Python dependencies
+        run: pip install selenium
 
       - name: Run script
         run: python mcx_open.py
