@@ -1,7 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+import os
 import time
+
+# Ensure screenshots directory exists
+os.makedirs("screenshots", exist_ok=True)
 
 def setup_driver():
     chrome_options = Options()
@@ -17,46 +21,32 @@ def setup_driver():
     )
     return driver
 
-def check_homepage_access(driver):
-    print("🌐 Attempting to access MCX homepage...")
-    driver.get("https://www.mcxindia.com")
-    time.sleep(3)  # Wait for page to load
-    
-    # Check page title and URL
-    print(f"📄 Page Title: {driver.title}")
-    print(f"🌍 Current URL: {driver.current_url}")
-    
-    # Verify successful access
-    if "MCX India" in driver.title:
-        print("✅ Successfully accessed MCX homepage")
-        return True
-    elif "access denied" in driver.title.lower():
-        print("⛔ Access denied by website")
-        return False
-    else:
-        print("⚠️ Unexpected page content")
-        return False
-
 def main():
     driver = setup_driver()
     try:
-        if check_homepage_access(driver):
-            # If accessed successfully, you can add more checks here
-            print("🔄 Checking for homepage elements...")
-            # Example: Check if the option chain link exists
-            try:
-                option_chain_link = driver.find_element("link text", "Option Chain")
-                print("🔗 Found Option Chain link")
-            except:
-                print("❌ Option Chain link not found")
-        else:
-            print("❌ Failed to access MCX homepage")
+        print("🌐 Navigating to MCX...")
+        driver.get("https://www.mcxindia.com")
+        time.sleep(3)
+        
+        # Always save screenshot
+        screenshot_path = "screenshots/result.png"
+        driver.save_screenshot(screenshot_path)
+        print(f"📸 Screenshot saved to {screenshot_path}")
+        
+        # Verify access
+        if "access denied" in driver.title.lower():
+            raise Exception("Access denied detected")
             
+        print("✅ Successfully accessed MCX")
+        
     except Exception as e:
-        print(f"💥 Unexpected error: {str(e)}")
+        print(f"❌ Error: {str(e)}")
+        error_path = "screenshots/error.png"
+        driver.save_screenshot(error_path)
+        print(f"📸 Error screenshot saved to {error_path}")
     finally:
         driver.quit()
-        print("🛑 Browser session closed")
+        print("🛑 Browser closed")
 
 if __name__ == "__main__":
     main()
