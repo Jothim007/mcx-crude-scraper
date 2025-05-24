@@ -17,8 +17,8 @@ driver.get("https://www.mcxindia.com")
 # Wait for page to load
 time.sleep(5)
 
-# Save screenshot
-driver.save_screenshot("mcx_homepage.png")
+# Print confirmation
+print("MCX website opened")
 
 # Quit the browser
 driver.quit()
