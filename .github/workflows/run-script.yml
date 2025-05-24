@@ -19,7 +19,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install selenium undetected-chromedriver
-        run: |
           sudo apt-get update
           sudo apt-get install -y python3-distutils
           pip install selenium undetected-chromedriver
