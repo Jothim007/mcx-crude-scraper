@@ -1,4 +1,4 @@
-name: Take MCX Screenshot
+name: Take MCX Screenshot111
 
 on:
   workflow_dispatch:
