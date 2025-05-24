@@ -1,38 +1,46 @@
-name: MCX Mobile Access
-on: [workflow_dispatch]
+name: MCX Screenshot
+
+on:
+  workflow_dispatch:
 
 jobs:
-  access:
+  run-script:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install selenium==4.9.0
-        
-    - name: Install Chrome
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
-        echo "Chromium version: $(chromium-browser --version)"
-        echo "Chromedriver version: $(chromedriver --version)"
-        
-    - name: Run script
-      run: |
-        python main.py
-        
-    - name: Upload results
-      uses: actions/upload-artifact@main
-      if: always()
-      with:
-        name: mcx-results
-        path: |
-          success.png
-          error.png
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # ✅ Use 3.11 to avoid distutils issue
+
+      - name: Install Python dependencies
+        run: pip install selenium undetected-chromedriver
+
+      - name: Install Google Chrome & Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip jq
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          sudo apt-get install -y google-chrome-stable
+
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json" | jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version | startswith($ver)) | .version' | head -n 1)
+          DRIVER_URL="https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
+
+          wget "$DRIVER_URL" -O chromedriver.zip
+          unzip chromedriver.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+
+      - name: Run screenshot script
+        run: python mcx_open.py
+
+      - name: Upload screenshot artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: mcx-screenshot
+          path: mcx_screenshot.png
