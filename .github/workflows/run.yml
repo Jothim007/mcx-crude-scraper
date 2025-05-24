@@ -1,8 +1,8 @@
-name: MCX Test
+name: MCX Debugger
 on: [workflow_dispatch]
 
 jobs:
-  test:
+  debug:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -22,15 +22,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y chromium-browser chromium-chromedriver
         
-    - name: Run test
+    - name: Run debugger
       run: |
         python main.py
         
-    - name: Upload screenshot
+    - name: Upload evidence
       uses: actions/upload-artifact@v3
-      if: always()  # Upload even if previous steps fail
+      if: always()
       with:
-        name: mcx-screenshot
+        name: mcx-debug-artifacts
         path: |
-          mcx_screenshot.png
+          mcx_debug.png
           error.png
