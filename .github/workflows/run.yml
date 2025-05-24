@@ -15,14 +15,21 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install selenium==4.9.0 selenium-stealth==1.0.6
         
     - name: Install Chrome
       run: |
         sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
-        sudo ln -s /usr/bin/google-chrome-stable /usr/bin/chromium-browser
-        google-chrome --version
+        sudo apt-get install -y wget
+        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt install -y ./google-chrome-stable_current_amd64.deb
+        rm google-chrome-stable_current_amd64.deb
+        echo "Chrome version: $(google-chrome --version)"
+        
+    - name: Verify Chromedriver
+      run: |
+        sudo apt-get install -y chromium-chromedriver
+        echo "Chromedriver path: $(which chromedriver)"
         
     - name: Run script
       run: |
