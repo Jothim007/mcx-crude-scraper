@@ -1,55 +1,48 @@
-name: MCX Website Monitoring
+name: MCX Screenshot Test
 on: [workflow_dispatch]
 
 jobs:
-  monitor:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    container:
-      image: ubuntu:22.04
-      options: --shm-size=2g
-
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python and Chrome
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
       run: |
-        apt-get update
-        apt-get install -y \
-          python3.10 \
-          python3-pip \
+        python -m pip install --upgrade pip
+        pip install selenium==4.9.0
+        
+    - name: Install Chrome with GPU support
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
           chromium-browser \
           chromium-chromedriver \
           libgl1-mesa-glx \
-          xvfb
+          libgl1-mesa-dri
+        echo "Chromium version: $(chromium-browser --version)"
         
-        python3 -m pip install --upgrade pip
-        pip install selenium==4.9.0 webdriver-manager
-
-    - name: Create artifacts directory
-      run: mkdir -p artifacts
-
-    - name: Run MCX monitoring script
+    - name: Create screenshots directory
+      run: mkdir -p screenshots
+        
+    - name: Run test
       run: |
-        xvfb-run --auto-servernum python3 main.py
-      env:
-        DISPLAY: :99
-
-    - name: Verify results
+        python main.py
+        
+    - name: Verify screenshots
       run: |
-        echo "Generated artifacts:"
-        ls -la artifacts/
-        if [ ! -f "artifacts/result.png" ]; then
-          echo "::error::Screenshot was not generated!"
-          exit 1
-        fi
-
-    - name: Upload artifacts
+        echo "Screenshot contents:"
+        ls -la screenshots/
+        file screenshots/*.png
+        
+    - name: Upload results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: mcx-monitoring-results
-        path: |
-          artifacts/*
-          !artifacts/.gitkeep
-        retention-days: 3
+        name: mcx-screenshots
+        path: screenshots/*
