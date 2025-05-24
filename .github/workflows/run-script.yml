@@ -1,18 +1,16 @@
-name: Open MCX Website and Take Screenshot
+name: Take MCX Screenshot
 
 on:
   workflow_dispatch:
 
 jobs:
-  run-script:
+  take-screenshot:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
@@ -20,13 +18,13 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y chromium-browser
-        pip install -r requirements.txt
+        pip install selenium
 
-    - name: Run mcx_open.py
+    - name: Run screenshot script
       run: python mcx_open.py
 
     - name: Upload screenshot
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@3d2f23882956b8e9e02cd9df6cd1f90bcf91b69d
       with:
-        name: mcx-screenshot
+        name: screenshot
         path: mcx_screenshot.png
