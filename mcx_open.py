@@ -1,86 +1,76 @@
+"""
+MCX Website Screenshot Tool
+Author: [Your Name]
+Description: Opens MCX website and captures screenshot with proper browser emulation
+"""
+
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-import os
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import time
+import os
+from datetime import datetime
 
-# Setup screenshot directory
-os.makedirs("screenshots", exist_ok=True)
-
-def setup_driver():
-    chrome_options = Options()
+def capture_mcx_screenshot(url="https://www.mcxindia.com", save_dir="screenshots"):
+    """
+    Capture screenshot of MCX website
     
-    # Headless with GPU (fixes blank screenshots)
-    chrome_options.add_argument("--headless=new")
+    Args:
+        url (str): URL to capture (default: MCX homepage)
+        save_dir (str): Directory to save screenshots
+    """
+    # Create directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Configure Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--disable-notifications")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--force-device-scale-factor=1")  # Fixes scaling
     
-    # Enable GPU for rendering
-    chrome_options.add_argument("--use-gl=egl")
-    chrome_options.add_argument("--disable-software-rasterizer")
+    # Add stealth options to avoid detection
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
     
-    driver = webdriver.Chrome(
-        service=Service('/usr/bin/chromedriver'),
-        options=chrome_options
-    )
-    return driver
-
-def wait_for_visible_element(driver, timeout=10):
-    """Wait until page has visible content"""
-    WebDriverWait(driver, timeout).until(
-        EC.visibility_of_element_located((By.XPATH, "//*[not(contains(@style,'display:none'))]"))
-    )
-
-def capture_screenshot(driver, filename):
-    """Guaranteed screenshot capture"""
     try:
-        # Scroll to trigger rendering
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight/3)")
-        time.sleep(1)
+        # Initialize WebDriver
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=chrome_options
+        )
         
-        # Wait for visible content
-        wait_for_visible_element(driver)
+        # Modify navigator.webdriver flag to prevent detection
+        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         
-        # Double-check rendering
-        if not driver.find_elements(By.XPATH, "//body/*"):
-            raise Exception("No visible elements found")
-            
-        driver.save_screenshot(f"screenshots/{filename}")
-        print(f"✅ Saved {filename}")
-    except Exception as e:
-        print(f"⚠️ Screenshot failed: {str(e)}")
-        # Fallback screenshot
-        driver.save_screenshot(f"screenshots/fallback_{filename}")
-
-def main():
-    driver = setup_driver()
-    try:
-        print("🌐 Loading MCX website...")
-        driver.get("https://www.mcxindia.com")
+        # Open the URL
+        driver.get(url)
+        print(f"Opened: {url}")
         
-        # Wait for page to stabilize
-        time.sleep(3)
+        # Wait for page to load
+        time.sleep(5)  # Adjust based on your internet speed
         
-        # First screenshot attempt
-        capture_screenshot(driver, "page.png")
+        # Generate timestamp for filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(save_dir, f"mcx_screenshot_{timestamp}.png")
         
-        # Additional verification
-        if "access denied" in driver.title.lower():
-            raise Exception("Access denied")
-            
-        print(f"🖥️ Page title: {driver.title}")
+        # Capture screenshot
+        driver.save_screenshot(filename)
+        print(f"Screenshot saved to: {filename}")
         
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
-        capture_screenshot(driver, "error.png")
+        print(f"Error: {str(e)}")
     finally:
-        driver.quit()
-        print("🛑 Session ended")
+        # Close the browser
+        if 'driver' in locals():
+            driver.quit()
+            print("Browser closed.")
 
 if __name__ == "__main__":
-    main()
+    # Example usage
+    capture_mcx_screenshot()
