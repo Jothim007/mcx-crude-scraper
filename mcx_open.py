@@ -3,43 +3,22 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 import time
 
-# 1. Use premium proxies (not free/public ones)
-PROXIES = [
-    "http://username:password@geo.iproyal.com:12321",  # Example paid proxy
-    "http://customer-USERNAME-cc-US:SESSIONID@zproxy.lum-superproxy.io:22225"
-]
-
 def setup_driver():
     chrome_options = Options()
     
-    # Select proxy
-    proxy = PROXIES[0]  # Rotate these in production
+    # Disable all proxy settings
+    chrome_options.add_argument("--no-proxy-server")
+    chrome_options.add_argument("--proxy-bypass-list=*")
     
-    # Configure proxy properly
-    chrome_options.add_argument(f"--proxy-server={proxy}")
-    chrome_options.add_argument("--ignore-certificate-errors")
-    
-    # Essential settings
+    # Essential stealth settings
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     
-    # Authentication for proxy (if required)
-    plugin = """
-    var config = {
-        mode: "fixed_servers",
-        rules: {
-            singleProxy: {
-                scheme: "http",
-                host: "%s",
-                port: %d
-            },
-            bypassList: ["localhost"]
-        }
-    };
-    chrome.proxy.settings.set({value: config, scope: "regular"}, function() {});
-    """ % (proxy.split('@')[-1].split(':')[0], int(proxy.split(':')[-1]))
-    
-    chrome_options.add_extension(create_proxy_extension(plugin))
+    # Mobile emulation
+    mobile_emulation = {
+        "deviceName": "iPhone 12"
+    }
+    chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
     
     driver = webdriver.Chrome(
         service=Service('/usr/bin/chromedriver'),
@@ -47,6 +26,7 @@ def setup_driver():
     )
     return driver
 
+# Usage same as above
 def create_proxy_extension(proxy_config):
     from selenium.webdriver.common.utils import free_port
     import zipfile
