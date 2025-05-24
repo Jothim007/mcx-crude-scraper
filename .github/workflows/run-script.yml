@@ -1,4 +1,4 @@
-name: Open MCX Website
+name: Open MCX Website and Take Screenshot
 
 on:
   push:
@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
@@ -24,11 +24,11 @@ jobs:
         sudo apt-get install -y chromium-browser
         pip install -r requirements.txt
 
-    - name: Run script
+    - name: Run mcx_open.py
       run: python mcx_open.py
 
     - name: Upload screenshot
-      uses: actions/upload-artifact@v3
+      uses: https://github.com/actions/upload-artifact@v3
       with:
         name: mcx-screenshot
         path: mcx_screenshot.png
