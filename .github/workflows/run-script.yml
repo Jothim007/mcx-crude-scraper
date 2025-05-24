@@ -1,8 +1,8 @@
-name: MCX Mobile Access
+name: MCX Screenshot Test
 on: [workflow_dispatch]
 
 jobs:
-  access:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -17,30 +17,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install selenium==4.9.0
         
-    - name: Install Chrome
+    - name: Install Chrome with GPU support
       run: |
         sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
+        sudo apt-get install -y \
+          chromium-browser \
+          chromium-chromedriver \
+          libgl1-mesa-glx \
+          libgl1-mesa-dri
         echo "Chromium version: $(chromium-browser --version)"
-        echo "Chromedriver version: $(chromedriver --version)"
         
     - name: Create screenshots directory
       run: mkdir -p screenshots
         
-    - name: Run script
+    - name: Run test
       run: |
         python main.py
         
-    - name: Verify screenshots exist
+    - name: Verify screenshots
       run: |
-        echo "Checking files:"
+        echo "Screenshot contents:"
         ls -la screenshots/
-        test -f screenshots/success.png || touch screenshots/empty_success.png
-        test -f screenshots/error.png || touch screenshots/empty_error.png
+        file screenshots/*.png
         
     - name: Upload results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: mcx-results
+        name: mcx-screenshots
         path: screenshots/*
