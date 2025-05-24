@@ -1,4 +1,4 @@
-name: MCX Access
+name: MCX Advanced Access
 on: [workflow_dispatch]
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
     - name: Verify Chromedriver
       run: |
         sudo apt-get install -y chromium-chromedriver
-        echo "Chromedriver path: $(which chromedriver)"
+        echo "Chromedriver version: $(chromedriver --version)"
         
     - name: Run script
       run: |
@@ -43,3 +43,4 @@ jobs:
         path: |
           result.png
           error.png
+          cloudflare.png
