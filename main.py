@@ -1,16 +1,23 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium_stealth import stealth
 import time
 import random
+import re
 
-def get_random_user_agent():
-    agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
+def get_random_agent():
+    desktop = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{}.0.{}.{} Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_{}_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{}.0.{}.{} Safari/537.36"
     ]
-    return random.choice(agents)
+    version = (random.randint(100, 119), random.randint(1000, 9999), random.randint(100, 999)
+    return random.choice(desktop).format(*version)
+
+def human_type(element, text):
+    for char in text:
+        element.send_keys(char)
+        time.sleep(random.uniform(0.05, 0.3))
 
 def setup_driver():
     chrome_options = Options()
@@ -19,18 +26,24 @@ def setup_driver():
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
     
     # Advanced evasion
-    chrome_options.add_argument(f"--user-agent={get_random_user_agent()}")
+    chrome_options.add_argument(f"--user-agent={get_random_agent()}")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option("useAutomationExtension", False)
     
-    # Window and rendering
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--start-maximized")
+    # Network settings
+    chrome_options.add_argument("--disable-web-security")
+    chrome_options.add_argument("--allow-running-insecure-content")
     
-    driver = webdriver.Chrome(options=chrome_options)
+    # Use system chromedriver
+    service = Service(executable_path='/usr/bin/chromedriver')
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    
+    # Modify navigator properties
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
     # Apply stealth
     stealth(driver,
@@ -43,29 +56,50 @@ def setup_driver():
     )
     return driver
 
+def bypass_cloudflare(driver):
+    try:
+        # Check if Cloudflare challenge exists
+        if "challenge-form" in driver.page_source:
+            print("🛡️ Cloudflare detected - attempting bypass...")
+            time.sleep(5)
+            driver.save_screenshot("cloudflare.png")
+            return False
+        return True
+    except:
+        return False
+
 def main():
-    print("🚀 Starting browser with anti-detection...")
+    print("🚀 Starting advanced browser session...")
     driver = setup_driver()
     
     try:
-        print("🌐 Navigating to target website...")
+        print("🌐 Navigating to MCX with randomized patterns...")
+        
+        # Initial navigation with randomized delays
+        driver.get("https://www.google.com")
+        time.sleep(random.uniform(2, 4))
         driver.get("https://www.mcxindia.com")
         
-        # Randomize browsing pattern
-        time.sleep(random.uniform(2, 5))
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight/3)")
-        time.sleep(random.uniform(1, 3))
+        # Randomized scrolling
+        for _ in range(random.randint(2, 4)):
+            scroll_px = random.randint(300, 800)
+            driver.execute_script(f"window.scrollBy(0, {scroll_px})")
+            time.sleep(random.uniform(0.5, 1.5))
         
-        print(f"📄 Title: {driver.title}")
+        # Check for blocking
+        if not bypass_cloudflare(driver):
+            raise Exception("Cloudflare blocking detected")
+        
+        print(f"📄 Final Title: {driver.title}")
         driver.save_screenshot("result.png")
         print("✅ Screenshot saved")
         
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"❌ Critical Error: {str(e)}")
         driver.save_screenshot("error.png")
     finally:
         driver.quit()
-        print("🛑 Session ended")
+        print("🛑 Session terminated")
 
 if __name__ == "__main__":
     main()
