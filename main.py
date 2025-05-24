@@ -24,7 +24,20 @@ def get_next_available_row(sheet):
 
 while True:
     # === Step 1: Scrape MCX Option Chain ===
-    driver = webdriver.Chrome()
+    from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run in headless mode
+chrome_options.add_argument("--no-sandbox")  # Required for cloud
+chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent crashes
+chrome_options.add_argument("--remote-debugging-port=9222")  # Avoid port conflicts
+
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
+    options=chrome_options
+)
     driver.maximize_window()
     driver.get("https://www.mcxindia.com/market-data/option-chain")
     wait = WebDriverWait(driver, 20)
