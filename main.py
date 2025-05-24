@@ -1,29 +1,38 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium_stealth import stealth
 import time
-import os
+import random
+
+def get_random_user_agent():
+    agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
+    ]
+    return random.choice(agents)
 
 def setup_driver():
     chrome_options = Options()
+    
+    # Basic settings
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=1920,1080")
     
-    # Anti-detection settings
+    # Advanced evasion
+    chrome_options.add_argument(f"--user-agent={get_random_user_agent()}")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option("useAutomationExtension", False)
     
-    # Use system ChromeDriver that comes with GitHub Actions
-    driver = webdriver.Chrome(
-        service=Service(executable_path='/usr/bin/chromedriver'),
-        options=chrome_options
-    )
+    # Window and rendering
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--start-maximized")
     
-    # Stealth configuration
+    driver = webdriver.Chrome(options=chrome_options)
+    
+    # Apply stealth
     stealth(driver,
         languages=["en-US", "en"],
         vendor="Google Inc.",
@@ -35,27 +44,28 @@ def setup_driver():
     return driver
 
 def main():
-    print("🚀 Starting MCX Access...")
+    print("🚀 Starting browser with anti-detection...")
     driver = setup_driver()
+    
     try:
-        print("🌐 Navigating to MCX...")
+        print("🌐 Navigating to target website...")
         driver.get("https://www.mcxindia.com")
-        time.sleep(5)
         
-        print(f"📄 Page Title: {driver.title}")
-        print(f"🌍 Current URL: {driver.current_url}")
+        # Randomize browsing pattern
+        time.sleep(random.uniform(2, 5))
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight/3)")
+        time.sleep(random.uniform(1, 3))
         
+        print(f"📄 Title: {driver.title}")
         driver.save_screenshot("result.png")
-        print("📸 Saved screenshot: result.png")
+        print("✅ Screenshot saved")
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
-        if 'driver' in locals():
-            driver.save_screenshot("error.png")
+        driver.save_screenshot("error.png")
     finally:
-        if 'driver' in locals():
-            driver.quit()
-        print("🛑 Browser closed")
+        driver.quit()
+        print("🛑 Session ended")
 
 if __name__ == "__main__":
     main()
