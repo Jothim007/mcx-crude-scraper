@@ -110,7 +110,7 @@ def main():
         if access_website(driver, "https://www.mcxindia.com"):
             print("✅ Successfully accessed website")
             print(f"📱 Mobile View: {driver.title}")
-            driver.save_screenshot("success.png")
+            driver.save_screenshot("mcx_screenshot.png")
         else:
             raise Exception("Failed after retries")
             
