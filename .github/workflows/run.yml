@@ -1,46 +1,27 @@
-name: MCX Advanced Access
-on: [workflow_dispatch]
+name: Take MCX Screenshot
+
+on:
+  workflow_dispatch:
 
 jobs:
-  access:
+  run-script:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install selenium==4.9.0 selenium-stealth==1.0.6
-        
-    - name: Install Chrome
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wget
-        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo apt install -y ./google-chrome-stable_current_amd64.deb
-        rm google-chrome-stable_current_amd64.deb
-        echo "Chrome version: $(google-chrome --version)"
-        
-    - name: Verify Chromedriver
-      run: |
-        sudo apt-get install -y chromium-chromedriver
-        echo "Chromedriver version: $(chromedriver --version)"
-        
-    - name: Run script
-      run: |
-        python main.py
-        
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: mcx-results
-        path: |
-          result.png
-          error.png
-          cloudflare.png
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install selenium
+          sudo apt-get update
+          sudo apt-get install -y chromium-driver
+          which chromedriver
+
+      - name: Run script
+        run: python mcx_screenshot.py
