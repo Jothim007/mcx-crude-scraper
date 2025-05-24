@@ -1,8 +1,6 @@
 name: Open MCX Website and Take Screenshot
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -28,7 +26,7 @@ jobs:
       run: python mcx_open.py
 
     - name: Upload screenshot
-      uses: https://github.com/actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         name: mcx-screenshot
         path: mcx_screenshot.png
