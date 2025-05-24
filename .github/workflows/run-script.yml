@@ -38,9 +38,10 @@ jobs:
 
       - name: Run script
         run: python mcx_open.py
+- name: Upload screenshot artifact
+  uses: actions/upload-artifact@v3.1.3
+  with:
+    name: mcx-screenshot
+    path: mcx_screenshot.png
 
-      - name: Upload screenshot artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: mcx-screenshot
-          path: mcx_screenshot.png
+      
