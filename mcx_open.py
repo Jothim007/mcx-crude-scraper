@@ -1,8 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 import time
-import os
 
 def setup_driver():
     chrome_options = Options()
@@ -10,39 +9,54 @@ def setup_driver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--disable-gpu")
     
+    # Use system chromedriver
     driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service('/usr/bin/chromedriver'),
         options=chrome_options
     )
     return driver
 
-def main():
-    os.makedirs("artifacts", exist_ok=True)
-    driver = setup_driver()
+def check_homepage_access(driver):
+    print("🌐 Attempting to access MCX homepage...")
+    driver.get("https://www.mcxindia.com")
+    time.sleep(3)  # Wait for page to load
     
+    # Check page title and URL
+    print(f"📄 Page Title: {driver.title}")
+    print(f"🌍 Current URL: {driver.current_url}")
+    
+    # Verify successful access
+    if "MCX India" in driver.title:
+        print("✅ Successfully accessed MCX homepage")
+        return True
+    elif "access denied" in driver.title.lower():
+        print("⛔ Access denied by website")
+        return False
+    else:
+        print("⚠️ Unexpected page content")
+        return False
+
+def main():
+    driver = setup_driver()
     try:
-        print("🌐 Navigating to MCX...")
-        driver.get("https://www.mcxindia.com")
-        time.sleep(5)  # Increased wait time
-        
-        screenshot_path = "artifacts/mcx-status.png"
-        driver.save_screenshot(screenshot_path)
-        print(f"📸 Saved verification screenshot to {screenshot_path}")
-        
-        if "access denied" in driver.title.lower():
-            raise Exception("Access denied detected")
+        if check_homepage_access(driver):
+            # If accessed successfully, you can add more checks here
+            print("🔄 Checking for homepage elements...")
+            # Example: Check if the option chain link exists
+            try:
+                option_chain_link = driver.find_element("link text", "Option Chain")
+                print("🔗 Found Option Chain link")
+            except:
+                print("❌ Option Chain link not found")
+        else:
+            print("❌ Failed to access MCX homepage")
             
-        print(f"✅ Success - Page Title: {driver.title}")
-        
     except Exception as e:
-        print(f"❌ Monitoring failed: {str(e)}")
-        if 'driver' in locals():
-            driver.save_screenshot("artifacts/mcx-error.png")
+        print(f"💥 Unexpected error: {str(e)}")
     finally:
-        if 'driver' in locals():
-            driver.quit()
+        driver.quit()
+        print("🛑 Browser session closed")
 
 if __name__ == "__main__":
     main()
