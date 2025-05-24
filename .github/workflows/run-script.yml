@@ -1,4 +1,4 @@
-name: Take MCX Screenshot
+name: MCX open
 
 on:
   workflow_dispatch:
@@ -24,4 +24,5 @@ jobs:
           which chromedriver
 
       - name: Run script
-        run: python mcx_screenshot.py
+        run: run: python mcx_open.py
+
