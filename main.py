@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import os
 import time
 
 def setup_driver():
@@ -8,8 +9,6 @@ def setup_driver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--disable-extensions")
     return webdriver.Chrome(options=chrome_options)
 
 def main():
@@ -19,30 +18,24 @@ def main():
     try:
         print("🔍 Opening MCX website...")
         driver.get("https://www.mcxindia.com")
-        time.sleep(3)  # Wait for page to load
+        time.sleep(5)  # Wait longer for page load
+        
+        # Save screenshot (will be saved in the workflow's workspace)
+        screenshot_path = "mcx_screenshot.png"
+        driver.save_screenshot(screenshot_path)
+        print(f"📸 Saved screenshot to: {os.path.abspath(screenshot_path)}")
         
         # Debug output
-        print("\n=== PAGE DEBUG INFO ===")
+        print(f"\n=== PAGE DEBUG ===")
         print(f"Title: {driver.title}")
         print(f"URL: {driver.current_url}")
-        print(f"Page source length: {len(driver.page_source)} characters")
+        print(f"Page contains 'MCX': {'MCX' in driver.page_source}")
         
-        # Check for Cloudflare or other blockers
-        if "cloudflare" in driver.page_source.lower():
-            print("⚠️ Detected Cloudflare protection")
-        
-        # Save screenshot for debugging
-        driver.save_screenshot("page.png")
-        print("📸 Saved screenshot as page.png")
-        
-        # Basic verification
-        if any(x in driver.title.lower() for x in ["mcx", "commodity", "exchange"]):
-            print("✅ Successfully accessed MCX website")
-        else:
-            print("❌ Unexpected page content")
-            
     except Exception as e:
-        print(f"⚠️ Error occurred: {str(e)}")
+        print(f"⚠️ Error: {str(e)}")
+        if 'driver' in locals():
+            driver.save_screenshot("error.png")
+            print("📸 Saved error screenshot")
     finally:
         driver.quit()
         print("🛑 Browser closed")
