@@ -45,6 +45,6 @@ driver = setup_driver()
 try:
     driver.get("https://www.mcxindia.com")
     time.sleep(5)
-    driver.save_screenshot("result.png")
+    driver.save_screenshot("mcx_screenshot.png")
 finally:
     driver.quit()
