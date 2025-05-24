@@ -1,0 +1,27 @@
+name: Take MCX Screenshot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install selenium
+          sudo apt-get update
+          sudo apt-get install -y chromium-driver
+          which chromedriver
+
+      - name: Run script
+        run: python mcx_screenshot.py
